@@ -1,161 +1,171 @@
 # OpenDoc Studio
 
-Editor, konverter, dan pengaman dokumen (PDF, Word, Excel, PowerPoint, SPSS,
-arsip terkompresi) yang berjalan **100% di browser Anda** — tidak ada server,
-tidak ada API, tidak ada file yang pernah diunggah kemana pun. Ekstensi untuk
-Chrome, Edge, dan browser berbasis Chromium lainnya. Lisensi MIT, gratis dan
-terbuka untuk siapa saja. **47 alat siap pakai** ("Ready") di 13 kategori —
-tidak ada satupun yang masih berstatus Beta.
+A privacy-first document editor, converter, and security toolkit (PDF, Word,
+Excel, PowerPoint, SPSS, compressed archives) that runs **100% inside your
+browser** — no server, no API, no file is ever uploaded anywhere. Ships as a
+browser extension for Chrome, Edge, and other Chromium-based browsers.
+MIT-licensed, free and open for anyone to use. **47 ready-to-use tools**
+across 13 categories — none of them still in Beta.
 
-## Mengapa ini aman secara privasi
+## Why it's private by design
 
-- Ekstensi ini **tidak memiliki `host_permissions`** dan Content-Security-Policy-nya
-  memblokir semua koneksi jaringan keluar (`connect-src 'self'`). Secara teknis
-  mustahil bagi ekstensi ini mengirim file Anda kemana pun.
-- Setiap alat memproses file sepenuhnya di memori peramban. Begitu Anda
-  mengunduh hasilnya, seluruh salinan di memori (input maupun output) langsung
-  dihapus.
-- OCR (pengenalan teks) memakai data bahasa yang sudah dibundel di dalam
-  ekstensi (`public/tessdata/`), bukan diunduh dari CDN saat dipakai.
-- Fitur **Otomasi/Batch** dan operasi lain yang butuh penyimpanan sementara
-  memakai IndexedDB hanya agar hasil antar-langkah bisa bertahan; itu pun
-  otomatis dibersihkan setelah selesai atau setelah 15 menit oleh
+- The extension requests **no `host_permissions`**, and its Content-Security-Policy
+  blocks every outbound network connection (`connect-src 'self'`). It is
+  technically impossible for this extension to send your files anywhere.
+- Every tool processes files entirely in browser memory. As soon as you
+  download the result, every in-memory copy (input and output) is discarded.
+- OCR (text recognition) uses language data bundled directly inside the
+  extension (`public/tessdata/`), never fetched from a CDN at runtime.
+- The **Batch Automation** feature and other operations that need temporary
+  storage use IndexedDB only to persist intermediate results between steps;
+  that storage is automatically cleared on completion or after 15 minutes via
   `chrome.alarms`.
 
-## Fitur (status hari ini)
+## Features (current status)
 
-Semua alat di bawah berstatus **Ready** (berfungsi penuh). Batasan yang
-disengaja (bukan bug) untuk fitur-fitur tertentu — mis. font pengganti pada
-"Edit Teks Halaman" tidak identik dengan font asli, atau Measure Tool hanya
-mengukur halaman 1 — didokumentasikan jujur di [ROADMAP.md](./ROADMAP.md).
+Every tool listed below is **Ready** (fully functional). Intentional
+limitations for specific features (not bugs) — e.g. the substitute font used
+in "Edit Page Text" is not identical to the original font, or the Measure
+Tool only measures page 1 — are documented honestly in
+[ROADMAP.md](./ROADMAP.md).
 
-| Kategori | Alat |
+| Category | Tools |
 |---|---|
-| **Atur Halaman** | Gabung PDF (drag-drop urutkan file + pratinjau semua halaman), Pisah, **Ekstrak/Hapus Halaman** (klik langsung thumbnail halaman untuk memilih), Putar Halaman, Penomoran Bates |
-| **Edit PDF** | Watermark teks, Header/Footer, Nomor Halaman, Edit Metadata, Kompres, **Edit Teks Halaman** (klik teks yang ada di halaman mana pun untuk menggantinya langsung di tempat, dengan penyesuaian warna latar & font otomatis, mendukung semua halaman) |
-| **Konversi** | PDF ↔ Word (termasuk deteksi tabel, heading, dan bullet list otomatis), PDF ↔ PowerPoint, PDF ↔ Excel, PDF ↔ Gambar, PDF ↔ HTML, PDF ↔ Teks, PDF → PDF/A, Excel ↔ CSV, Excel ↔ SPSS (.sav), Arsip (RAR/7z/TAR/GZIP/BZIP2/ISO) → ZIP |
-| **Keamanan** | Kunci/Buka Kata Sandi (AES-256), **Redaksi Kata Kunci & Pola Data** (deteksi otomatis email/telepon/NIK/kartu kredit selain kata kunci manual) + flatten, Bersihkan Metadata/JS/Lampiran |
-| **Kenali Teks (OCR)** | PDF Scan → PDF Bisa Dicari, Ekstrak Teks dari Scan — Bahasa Indonesia, Inggris, atau campuran (ind+eng), offline sepenuhnya, dengan pra-pemrosesan gambar (grayscale + binarisasi otomatis) untuk akurasi lebih baik pada hasil scan nyata |
-| **Tanda Tangan** | Isi & Tanda Tangan (klik langsung di halaman untuk menempel teks/gambar tanda tangan), Tanda Tangan Digital Bersertifikat (PAdES-style, PKCS#7), Verifikasi Tanda Tangan |
-| **Komentar & Markup** | Sorot (highlight), Coret Tangan (ink), dan Catatan Tempel — satu alat, tiga mode, semua klik-langsung di atas pratinjau halaman; anotasi PDF asli, terlihat di Adobe Reader/PDF viewer manapun |
-| **Formulir** | Perancang Field AcroForm visual (teks/checkbox/radio/dropdown), Ekspor Data Formulir (CSV/FDF/XFDF) |
-| **Aksesibilitas** | Pemeriksa heuristik (judul, bahasa, tag struktur, font tersemat) + laporan HTML |
-| **Ukur** | Kalibrasi skala + ukur jarak/luas pada gambar teknik/denah, ekspor PDF beranotasi |
-| **Bandingkan** | Diff piksel per halaman + diff teks antar dua versi PDF, laporan HTML |
-| **Portofolio** | Lampirkan banyak file (PDF, gambar, Office, dll.) + halaman indeks dalam satu PDF Portfolio |
-| **Otomasi** | Wizard rantai-alat untuk memproses banyak file PDF sekaligus secara batch |
+| **Page Organization** | Merge PDF (drag-and-drop file reordering + preview of every page), Split, **Extract/Delete Pages** (click page thumbnails directly to select), Rotate Pages, Bates Numbering |
+| **PDF Editing** | Text Watermark, Header/Footer, Page Numbers, Edit Metadata, Compress, **Edit Page Text** (click any text on any page to replace it in place, with automatic background-color and font matching, works across all pages) |
+| **Conversion** | PDF ↔ Word (including automatic table, heading, and bullet-list detection), PDF ↔ PowerPoint, PDF ↔ Excel, PDF ↔ Image, PDF ↔ HTML, PDF ↔ Text, PDF → PDF/A, Excel ↔ CSV, Excel ↔ SPSS (.sav), Archive (RAR/7z/TAR/GZIP/BZIP2/ISO) → ZIP |
+| **Security** | Password Lock/Unlock (AES-256), **Keyword & Pattern Redaction** (automatic detection of emails/phone numbers/national IDs/credit cards, plus manual keywords) with flattening, Sanitize Metadata/JS/Attachments |
+| **Text Recognition (OCR)** | Scanned PDF → Searchable PDF, Extract Text from Scans — Indonesian, English, or mixed (ind+eng), fully offline, with image pre-processing (automatic grayscale + binarization) for better accuracy on real-world scans |
+| **Signatures** | Fill & Sign (click directly on the page to place text/image signatures), Certified Digital Signature (PAdES-style, PKCS#7), Signature Verification |
+| **Comments & Markup** | Highlight, Freehand Ink, and Sticky Notes — one tool, three modes, all click-directly-on-preview; produces native PDF annotations visible in Adobe Reader or any PDF viewer |
+| **Forms** | Visual AcroForm field designer (text/checkbox/radio/dropdown), Form Data Export (CSV/FDF/XFDF) |
+| **Accessibility** | Heuristic checker (title, language, structure tags, embedded fonts) + HTML report |
+| **Measure** | Scale calibration + distance/area measurement on technical drawings/floor plans, annotated PDF export |
+| **Compare** | Per-page pixel diff + text diff between two PDF versions, HTML report |
+| **Portfolio** | Attach multiple files (PDF, images, Office, etc.) + index page into a single PDF Portfolio |
+| **Automation** | Tool-chain wizard for batch-processing many PDF files at once |
 
-### Yang membuat pengalaman penggunaannya nyaman
+### What makes it pleasant to use
 
-- **Pemilihan file yang masuk akal**: pilih/seret file berkali-kali untuk
-  menambah ke daftar (tidak menimpa pilihan sebelumnya), hapus satu file
-  tanpa mengulang dari awal, dan urutkan ulang lewat drag-and-drop atau
-  tombol ↑/↓ — penting untuk urutan penggabungan PDF.
-- **Pratinjau halaman**: pada alat pengaturan halaman, arahkan kursor atau
-  klik nama file untuk melihat seluruh halamannya (bisa di-scroll) sebelum
-  memutuskan urutan/rentang halaman.
-- **Klik-langsung-di-halaman**: Isi & Tanda Tangan, Komentar & Markup, Edit
-  Teks Halaman, Alat Ukur, dan Perancang Formulir semuanya bisa dioperasikan
-  dengan klik langsung pada pratinjau dokumen — tidak perlu menghitung
-  koordinat X/Y manual.
-- **Progres & keamanan data**: setiap proses menampilkan progres, dan begitu
-  hasil diunduh, aplikasi menampilkan konfirmasi bahwa salinan di memori
-  browser sudah dihapus.
+- **Sane file selection**: select/drop files multiple times to add to the
+  list (without overwriting your previous selection), remove a single file
+  without starting over, and reorder via drag-and-drop or ↑/↓ buttons —
+  important for controlling PDF merge order.
+- **Page preview**: in page-organization tools, hover or click a file name to
+  scroll through every page before deciding on the order/page range.
+- **Click-directly-on-the-page**: Fill & Sign, Comments & Markup, Edit Page
+  Text, the Measure tool, and the Form Designer can all be operated by
+  clicking directly on the document preview — no manual X/Y coordinate math
+  required.
+- **Progress & data safety**: every operation shows progress, and once the
+  result is downloaded, the app confirms that all in-browser memory copies
+  have been cleared.
 
-## Instalasi & Menjalankan
+## Installation & Running
 
-Ada dua cara, tergantung apakah Anda menerima folder `dist/` yang sudah jadi
-atau kode sumbernya.
+There are two ways to get it running, depending on whether you already have
+a pre-built `dist/` folder or just the source code.
 
-### Cara 1 — Sudah punya folder `dist/` (paling mudah, tidak perlu install apapun)
+### Option 1 — You already have a `dist/` folder (easiest, nothing to install)
 
-Jika Anda menerima proyek ini lengkap dengan folder `dist/` di dalamnya
-(misalnya lewat distribusi/berbagi file), langsung ke langkah "Muat ke
-Chrome/Edge" di bawah — lewati bagian build.
+If you received this project already bundled with a `dist/` folder (e.g. via
+a shared file/zip), skip straight to "Load into Chrome/Edge" below — no
+build step needed.
 
-### Cara 2 — Build dari kode sumber
+### Option 2 — Build from source
 
-Butuh [Node.js](https://nodejs.org/) versi 18 ke atas.
+Requires [Node.js](https://nodejs.org/) version 18 or later.
 
 ```bash
 npm install
 npm run build
 ```
 
-Perintah ini menghasilkan folder `dist/` yang siap dimuat sebagai ekstensi.
+This produces a `dist/` folder ready to be loaded as an extension.
 
-### Muat ke Chrome/Edge
+### Load into Chrome/Edge
 
-1. Buka `chrome://extensions` (atau `edge://extensions` untuk Microsoft Edge).
-2. Aktifkan **Developer mode** (toggle di kanan atas).
-3. Klik **Load unpacked**, lalu pilih folder `dist/` (bukan folder proyek
-   induknya).
-4. Ekstensi "OpenDoc Studio" akan muncul di daftar dan di toolbar browser.
-5. Klik ikonnya di toolbar untuk membuka OpenDoc Studio di tab baru.
+1. Open `chrome://extensions` (or `edge://extensions` for Microsoft Edge).
+2. Enable **Developer mode** (toggle in the top-right corner).
+3. Click **Load unpacked**, then select the `dist/` folder (not the parent
+   project folder).
+4. The "OpenDoc Studio" extension will appear in your extension list and in
+   the browser toolbar.
+5. Click its icon in the toolbar to open OpenDoc Studio in a new tab.
 
-Tidak perlu login, tidak perlu koneksi internet setelah dimuat, dan tidak ada
-data yang dikirim keluar — semua diproses lokal di komputer Anda.
+No login required, no internet connection needed once loaded, and no data is
+ever sent out — everything is processed locally on your machine.
 
-**Membagikan ke orang lain**: cukup salin seluruh folder proyek (termasuk
-`dist/`), atau kompres sebagai `.zip`. Penerima tinggal ekstrak dan ikuti
-langkah "Muat ke Chrome/Edge" di atas — tidak perlu Node.js maupun `npm
-install` jika `dist/` sudah disertakan.
+**Sharing with others**: simply copy the whole project folder (including
+`dist/`), or zip it up. The recipient just extracts it and follows the "Load
+into Chrome/Edge" steps above — no Node.js or `npm install` needed if
+`dist/` is already included.
 
-### Memperbarui setelah mengubah kode
+### Updating after changing the code
 
-Setiap kali kode sumber (`src/`) berubah, jalankan ulang `npm run build`,
-lalu klik tombol **refresh/reload** pada kartu ekstensi di
-`chrome://extensions` agar perubahan terlihat.
+Whenever the source code (`src/`) changes, re-run `npm run build`, then click
+the **refresh/reload** button on the extension card at
+`chrome://extensions` to see the changes.
 
-## Menjalankan pengujian
+## Running tests
 
 ```bash
 npm test
 ```
 
-Pengujian otomatis (`vitest`) mencakup logika murni yang tidak butuh DOM:
-pembacaan/penulisan format `.sav`, operasi organisasi PDF, konversi
-Excel/CSV, anotasi PDF, edit teks halaman, dan tanda tangan digital
-(termasuk verifikasi kriptografis nyata + uji deteksi tampering).
+Automated tests (`vitest`) cover pure logic that doesn't require a DOM:
+`.sav` format reading/writing, PDF organization operations, Excel/CSV
+conversion, PDF annotations, page text editing, and digital signatures
+(including real cryptographic verification + tamper-detection tests).
 
-Ada juga lapisan uji end-to-end di browser sungguhan:
+There is also a browser-based end-to-end test layer:
 
 ```bash
-npm run build            # wajib sebelum test:e2e — ia menguji dist/ yang sudah jadi
-npx playwright install chromium   # sekali saja
+npm run build            # required before test:e2e — it tests the built dist/
+npx playwright install chromium   # one-time setup
 npm run test:e2e
 ```
 
-`test/e2e/smoke.mjs` memuat ekstensi yang benar-benar sudah di-build ke dalam
-Chromium via Playwright, lalu menjalankan setiap alat "Ready" (baik yang
-lewat `engine.worker.js`, yang berjalan di thread utama, maupun tool
-interaktif berbasis klik-kanvas seperti Measure/Forms/Markup/Edit Teks
-Halaman) dan memeriksa hasilnya sungguhan. Lapisan ini penting: sebuah bug
-sistemik pernah lolos dari seluruh suite `vitest` karena `vitest` menjalankan
-modul engine langsung di Node, tidak pernah benar-benar memuat
-`engine.worker.js` sebagai Web Worker asli — padahal justru di situ letak
-bug-nya (lihat catatan di `vite.config.js` soal `modulePreload: false`).
+`test/e2e/smoke.mjs` loads the actual built extension into Chromium via
+Playwright, then runs every "Ready" tool (both those routed through
+`engine.worker.js`, which runs on a background thread, and interactive
+canvas-click tools like Measure/Forms/Markup/Edit Page Text) and checks the
+real output. This layer matters: a systemic bug once slipped past the entire
+`vitest` suite because `vitest` runs engine modules directly in Node and
+never actually loads `engine.worker.js` as a real Web Worker — which is
+exactly where the bug was (see the note in `vite.config.js` about
+`modulePreload: false`).
 
-## Arsitektur singkat
+## Architecture overview
 
-- `src/engines/` — logika murni per fitur (PDF, konversi, Excel↔SAV, arsip),
-  tidak bergantung pada UI, mudah diuji satuan.
-- `src/workers/engine.worker.js` — satu Web Worker generik yang memuat modul
-  engine sesuai permintaan, supaya UI tidak macet saat memproses file besar.
-  Fitur yang butuh DOM langsung (html2canvas, libarchive.js, tesseract.js,
-  klik-kanvas interaktif) berjalan di thread utama — lihat komentar di
-  masing-masing file engine.
-- `src/app/` — antarmuka: `tool-registry.js` (daftar deklaratif semua 47
-  alat), `components/tool-workspace.js` + `components/file-picker.js` (UI
-  generik: pilih/urutkan file → pratinjau → opsi → proses → unduh),
-  `components/pdf-canvas.js` (render halaman PDF ke `<canvas>` untuk tool
-  interaktif), `views/` (Beranda, Pengaturan, dan tool-tool dengan UI khusus
-  seperti Markup/Edit Teks/Isi & Tanda Tangan/Ukur/Formulir/Otomasi), routing
-  berbasis hash.
-- `src/core/` — orkestrasi lintas fitur: siklus hidup file (`pipeline.js`),
-  penyimpanan sementara batch (`file-store.js`), jembatan worker
+- `src/engines/` — pure per-feature logic (PDF, conversion, Excel↔SAV,
+  archives), UI-independent and easy to unit test.
+- `src/workers/engine.worker.js` — a single generic Web Worker that loads
+  engine modules on demand, so the UI doesn't freeze while processing large
+  files. Features that need direct DOM access (html2canvas, libarchive.js,
+  tesseract.js, interactive canvas clicks) run on the main thread instead —
+  see the comments in each engine file.
+- `src/app/` — the interface: `tool-registry.js` (declarative list of all 47
+  tools), `components/tool-workspace.js` + `components/file-picker.js`
+  (generic UI: select/reorder files → preview → options → process →
+  download), `components/pdf-canvas.js` (renders PDF pages to `<canvas>` for
+  interactive tools), `views/` (Home, Settings, and tools with dedicated UIs
+  such as Markup/Edit Text/Fill & Sign/Measure/Forms/Automation),
+  hash-based routing.
+- `src/core/` — cross-feature orchestration: file lifecycle (`pipeline.js`),
+  batch temporary storage (`file-store.js`), worker bridge
   (`worker-bridge.js`).
 
-Lisensi pihak ketiga: lihat [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md).
-Rencana pengembangan lanjutan & batasan yang disengaja: lihat
+Third-party licenses: see [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md).
+Further development plans & intentional limitations: see
 [ROADMAP.md](./ROADMAP.md).
+
+## Tech stack
+
+Vite, vanilla JavaScript, pdf-lib, pdfjs-dist, mammoth, xlsx, pptxgenjs,
+tesseract.js, node-forge, libarchive.js, html2canvas. Tested with Vitest and
+Playwright.
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
