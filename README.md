@@ -21,7 +21,14 @@ across 13 categories — none of them still in Beta.
   that storage is automatically cleared on completion or after 15 minutes via
   `chrome.alarms`.
 
-## Features (current status)
+## Functions
+
+OpenDoc Studio lets you edit, convert, secure, sign, annotate, and organize
+documents entirely offline, without ever trusting a third-party server with
+your files — solving the "I don't want to upload a sensitive PDF/contract/ID
+scan to some random website" problem that most online PDF tools force on you.
+
+## All features
 
 Every tool listed below is **Ready** (fully functional). Intentional
 limitations for specific features (not bugs) — e.g. the substitute font used
@@ -61,7 +68,19 @@ Tool only measures page 1 — are documented honestly in
   result is downloaded, the app confirms that all in-browser memory copies
   have been cleared.
 
-## Installation & Running
+## Terminology
+
+| Term | Meaning |
+|---|---|
+| Engine | A pure, UI-independent module in `src/engines/` implementing one feature's file-processing logic. |
+| Web Worker (`engine.worker.js`) | A background thread that runs engine modules so large files don't freeze the UI. |
+| PAdES | PDF Advanced Electronic Signatures — the digital-signature standard used for the Certified Digital Signature tool. |
+| AcroForm | The classic interactive PDF form field format (text/checkbox/radio/dropdown) used by the Forms tool. |
+| Redaction (flattening) | Permanently burning sensitive content into the page image/content stream so it can't be recovered, rather than just visually hiding it. |
+| Bates Numbering | Sequential page-numbering scheme commonly used in legal document sets. |
+| .sav | The SPSS binary data file format, supported for Excel ↔ SPSS conversion. |
+
+## How to use
 
 There are two ways to get it running, depending on whether you already have
 a pre-built `dist/` folder or just the source code.
@@ -93,13 +112,9 @@ This produces a `dist/` folder ready to be loaded as an extension.
    the browser toolbar.
 5. Click its icon in the toolbar to open OpenDoc Studio in a new tab.
 
-No login required, no internet connection needed once loaded, and no data is
-ever sent out — everything is processed locally on your machine.
-
-**Sharing with others**: simply copy the whole project folder (including
-`dist/`), or zip it up. The recipient just extracts it and follows the "Load
-into Chrome/Edge" steps above — no Node.js or `npm install` needed if
-`dist/` is already included.
+No login required, no internet connection needed once loaded, no environment
+variables or API keys to configure, and no data is ever sent out —
+everything is processed locally on your machine.
 
 ### Updating after changing the code
 
@@ -107,7 +122,7 @@ Whenever the source code (`src/`) changes, re-run `npm run build`, then click
 the **refresh/reload** button on the extension card at
 `chrome://extensions` to see the changes.
 
-## Running tests
+### Running tests
 
 ```bash
 npm test
@@ -127,30 +142,21 @@ npm run test:e2e
 ```
 
 `test/e2e/smoke.mjs` loads the actual built extension into Chromium via
-Playwright, then runs every "Ready" tool (both those routed through
-`engine.worker.js`, which runs on a background thread, and interactive
-canvas-click tools like Measure/Forms/Markup/Edit Page Text) and checks the
-real output. This layer matters: a systemic bug once slipped past the entire
-`vitest` suite because `vitest` runs engine modules directly in Node and
-never actually loads `engine.worker.js` as a real Web Worker — which is
-exactly where the bug was (see the note in `vite.config.js` about
-`modulePreload: false`).
+Playwright, then runs every "Ready" tool and checks the real output.
 
-## Architecture overview
+### Architecture overview
 
 - `src/engines/` — pure per-feature logic (PDF, conversion, Excel↔SAV,
   archives), UI-independent and easy to unit test.
 - `src/workers/engine.worker.js` — a single generic Web Worker that loads
   engine modules on demand, so the UI doesn't freeze while processing large
   files. Features that need direct DOM access (html2canvas, libarchive.js,
-  tesseract.js, interactive canvas clicks) run on the main thread instead —
-  see the comments in each engine file.
+  tesseract.js, interactive canvas clicks) run on the main thread instead.
 - `src/app/` — the interface: `tool-registry.js` (declarative list of all 47
   tools), `components/tool-workspace.js` + `components/file-picker.js`
   (generic UI: select/reorder files → preview → options → process →
   download), `components/pdf-canvas.js` (renders PDF pages to `<canvas>` for
-  interactive tools), `views/` (Home, Settings, and tools with dedicated UIs
-  such as Markup/Edit Text/Fill & Sign/Measure/Forms/Automation),
+  interactive tools), `views/` (Home, Settings, and tools with dedicated UIs),
   hash-based routing.
 - `src/core/` — cross-feature orchestration: file lifecycle (`pipeline.js`),
   batch temporary storage (`file-store.js`), worker bridge
@@ -160,7 +166,7 @@ Third-party licenses: see [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md).
 Further development plans & intentional limitations: see
 [ROADMAP.md](./ROADMAP.md).
 
-## Tech stack
+### Tech stack
 
 Vite, vanilla JavaScript, pdf-lib, pdfjs-dist, mammoth, xlsx, pptxgenjs,
 tesseract.js, node-forge, libarchive.js, html2canvas. Tested with Vitest and
@@ -169,3 +175,191 @@ Playwright.
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
+---
+
+## Bahasa Indonesia
+
+Editor, konverter, dan toolkit keamanan dokumen (PDF, Word, Excel,
+PowerPoint, SPSS, arsip terkompresi) yang mengutamakan privasi dan berjalan
+**100% di dalam browser Anda** — tanpa server, tanpa API, tidak ada file
+yang pernah diunggah ke mana pun. Dirilis sebagai ekstensi browser untuk
+Chrome, Edge, dan browser berbasis Chromium lainnya. Berlisensi MIT, gratis
+dan terbuka untuk siapa saja. **47 tool siap pakai** dalam 13 kategori —
+tidak ada satu pun yang masih Beta.
+
+## Mengapa privat secara desain
+
+- Ekstensi ini **tidak meminta `host_permissions`**, dan Content-Security-Policy-nya
+  memblokir semua koneksi jaringan keluar (`connect-src 'self'`). Secara
+  teknis mustahil bagi ekstensi ini untuk mengirim file Anda ke mana pun.
+- Setiap tool memproses file sepenuhnya di memori browser. Begitu Anda
+  mengunduh hasilnya, semua salinan di memori (input maupun output)
+  dihapus.
+- OCR (pengenalan teks) menggunakan data bahasa yang sudah dibundel di
+  dalam ekstensi (`public/tessdata/`), tidak pernah diambil dari CDN saat
+  runtime.
+- Fitur **Batch Automation** dan operasi lain yang butuh penyimpanan
+  sementara menggunakan IndexedDB hanya untuk menyimpan hasil antara di
+  antara langkah-langkah; penyimpanan itu otomatis dibersihkan setelah
+  selesai atau setelah 15 menit lewat `chrome.alarms`.
+
+## Fungsi
+
+OpenDoc Studio memungkinkan Anda mengedit, mengonversi, mengamankan,
+menandatangani, memberi anotasi, dan mengorganisir dokumen sepenuhnya
+secara offline, tanpa harus mempercayakan file Anda ke server pihak
+ketiga — menyelesaikan masalah "saya tidak mau mengunggah
+PDF/kontrak/scan KTP sensitif ke situs online sembarangan" yang biasa
+dipaksakan oleh kebanyakan tool PDF online.
+
+## Semua fitur
+
+Semua tool di bawah ini berstatus **Ready** (berfungsi penuh). Batasan
+yang disengaja untuk fitur tertentu (bukan bug) — misalnya font pengganti
+yang dipakai di "Edit Page Text" tidak identik dengan font asli, atau
+Measure Tool hanya mengukur halaman 1 — didokumentasikan dengan jujur di
+[ROADMAP.md](./ROADMAP.md).
+
+| Kategori | Tool |
+|---|---|
+| **Organisasi Halaman** | Merge PDF (urutan file via drag-and-drop + preview tiap halaman), Split, **Extract/Delete Pages** (klik thumbnail halaman langsung untuk memilih), Rotate Pages, Bates Numbering |
+| **Edit PDF** | Text Watermark, Header/Footer, Page Numbers, Edit Metadata, Compress, **Edit Page Text** (klik teks mana pun di halaman mana pun untuk menggantinya langsung, dengan pencocokan warna latar dan font otomatis, berfungsi di semua halaman) |
+| **Konversi** | PDF ↔ Word (termasuk deteksi otomatis tabel, heading, dan bullet-list), PDF ↔ PowerPoint, PDF ↔ Excel, PDF ↔ Image, PDF ↔ HTML, PDF ↔ Text, PDF → PDF/A, Excel ↔ CSV, Excel ↔ SPSS (.sav), Arsip (RAR/7z/TAR/GZIP/BZIP2/ISO) → ZIP |
+| **Keamanan** | Password Lock/Unlock (AES-256), **Keyword & Pattern Redaction** (deteksi otomatis email/nomor telepon/NIK/nomor kartu kredit, plus keyword manual) dengan flattening, Sanitize Metadata/JS/Attachments |
+| **Pengenalan Teks (OCR)** | Scanned PDF → Searchable PDF, Extract Text from Scans — Indonesia, Inggris, atau campuran (ind+eng), sepenuhnya offline, dengan pra-pemrosesan gambar (grayscale + binarisasi otomatis) untuk akurasi lebih baik pada scan dunia nyata |
+| **Tanda Tangan** | Fill & Sign (klik langsung di halaman untuk menempatkan tanda tangan teks/gambar), Certified Digital Signature (gaya PAdES, PKCS#7), Signature Verification |
+| **Komentar & Markup** | Highlight, Freehand Ink, dan Sticky Notes — satu tool, tiga mode, semuanya klik langsung di preview; menghasilkan anotasi PDF native yang terlihat di Adobe Reader atau pembaca PDF mana pun |
+| **Form** | Perancang field AcroForm visual (text/checkbox/radio/dropdown), Form Data Export (CSV/FDF/XFDF) |
+| **Aksesibilitas** | Pemeriksa heuristik (judul, bahasa, tag struktur, font terbenam) + laporan HTML |
+| **Ukur (Measure)** | Kalibrasi skala + pengukuran jarak/luas pada gambar teknik/denah, ekspor PDF beranotasi |
+| **Bandingkan (Compare)** | Perbandingan piksel per halaman + diff teks antara dua versi PDF, laporan HTML |
+| **Portfolio** | Melampirkan banyak file (PDF, gambar, Office, dll) + halaman indeks ke dalam satu PDF Portfolio |
+| **Otomasi** | Wizard rangkaian tool untuk memproses banyak file PDF sekaligus (batch) |
+
+### Yang membuatnya nyaman digunakan
+
+- **Pemilihan file yang masuk akal**: pilih/drop file berkali-kali untuk
+  menambah ke daftar (tanpa menimpa pilihan sebelumnya), hapus satu file
+  tanpa mengulang dari awal, dan urutkan ulang lewat drag-and-drop atau
+  tombol ↑/↓ — penting untuk mengontrol urutan penggabungan PDF.
+- **Preview halaman**: pada tool organisasi halaman, arahkan kursor atau
+  klik nama file untuk menelusuri setiap halaman sebelum menentukan
+  urutan/rentang halaman.
+- **Klik langsung di halaman**: Fill & Sign, Comments & Markup, Edit Page
+  Text, tool Measure, dan Form Designer semuanya bisa dioperasikan dengan
+  klik langsung di preview dokumen — tanpa perlu menghitung koordinat
+  X/Y manual.
+- **Progres & keamanan data**: setiap operasi menampilkan progres, dan
+  setelah hasil diunduh, aplikasi mengonfirmasi bahwa semua salinan di
+  memori browser sudah dibersihkan.
+
+## Istilah
+
+| Istilah | Arti |
+|---|---|
+| Engine | Modul murni tanpa ketergantungan UI di `src/engines/` yang mengimplementasikan logika pemrosesan file satu fitur. |
+| Web Worker (`engine.worker.js`) | Thread background yang menjalankan modul engine agar file besar tidak membekukan UI. |
+| PAdES | PDF Advanced Electronic Signatures — standar tanda tangan digital yang dipakai tool Certified Digital Signature. |
+| AcroForm | Format field form PDF interaktif klasik (text/checkbox/radio/dropdown) yang dipakai tool Forms. |
+| Redaction (flattening) | Membakar konten sensitif secara permanen ke gambar/content stream halaman agar tidak bisa dipulihkan, bukan sekadar menyembunyikannya secara visual. |
+| Bates Numbering | Skema penomoran halaman berurutan yang umum dipakai dalam kumpulan dokumen legal. |
+| .sav | Format file data biner SPSS, didukung untuk konversi Excel ↔ SPSS. |
+
+## Cara menggunakan
+
+Ada dua cara menjalankan proyek ini, tergantung apakah Anda sudah punya
+folder `dist/` hasil build atau hanya source code.
+
+### Opsi 1 — Sudah punya folder `dist/` (paling mudah, tanpa instalasi)
+
+Jika Anda menerima proyek ini sudah dilengkapi folder `dist/` (misalnya
+lewat file/zip yang dibagikan), langsung lompat ke "Muat ke Chrome/Edge"
+di bawah — tanpa perlu build.
+
+### Opsi 2 — Build dari source
+
+Membutuhkan [Node.js](https://nodejs.org/) versi 18 atau lebih baru.
+
+```bash
+npm install
+npm run build
+```
+
+Ini menghasilkan folder `dist/` yang siap dimuat sebagai ekstensi.
+
+### Muat ke Chrome/Edge
+
+1. Buka `chrome://extensions` (atau `edge://extensions` untuk Microsoft Edge).
+2. Aktifkan **Developer mode** (toggle di pojok kanan atas).
+3. Klik **Load unpacked**, lalu pilih folder `dist/` (bukan folder proyek
+   induknya).
+4. Ekstensi "OpenDoc Studio" akan muncul di daftar ekstensi dan di toolbar
+   browser.
+5. Klik ikonnya di toolbar untuk membuka OpenDoc Studio di tab baru.
+
+Tidak perlu login, tidak perlu koneksi internet setelah dimuat, tidak ada
+environment variable atau API key yang perlu dikonfigurasi, dan tidak ada
+data yang pernah dikirim keluar — semuanya diproses secara lokal di
+komputer Anda.
+
+### Memperbarui setelah mengubah kode
+
+Setiap kali source code (`src/`) berubah, jalankan ulang `npm run build`,
+lalu klik tombol **refresh/reload** pada kartu ekstensi di
+`chrome://extensions` untuk melihat perubahannya.
+
+### Menjalankan test
+
+```bash
+npm test
+```
+
+Test otomatis (`vitest`) mencakup logika murni yang tidak memerlukan DOM:
+baca/tulis format `.sav`, operasi organisasi PDF, konversi Excel/CSV,
+anotasi PDF, edit teks halaman, dan tanda tangan digital (termasuk
+verifikasi kriptografi nyata + test deteksi tamper).
+
+Ada juga lapisan test end-to-end berbasis browser:
+
+```bash
+npm run build            # wajib sebelum test:e2e — menguji dist/ hasil build
+npx playwright install chromium   # setup sekali saja
+npm run test:e2e
+```
+
+`test/e2e/smoke.mjs` memuat ekstensi hasil build sungguhan ke Chromium
+lewat Playwright, lalu menjalankan setiap tool berstatus "Ready" dan
+memeriksa output sungguhan.
+
+### Gambaran arsitektur
+
+- `src/engines/` — logika murni per-fitur (PDF, konversi, Excel↔SAV,
+  arsip), tidak bergantung UI dan mudah diuji unit.
+- `src/workers/engine.worker.js` — satu Web Worker generik yang memuat
+  modul engine sesuai kebutuhan, agar UI tidak macet saat memproses file
+  besar. Fitur yang butuh akses DOM langsung (html2canvas, libarchive.js,
+  tesseract.js, klik canvas interaktif) berjalan di main thread.
+- `src/app/` — antarmuka: `tool-registry.js` (daftar deklaratif 47 tool),
+  `components/tool-workspace.js` + `components/file-picker.js` (UI
+  generik: pilih/urutkan file → preview → opsi → proses → unduh),
+  `components/pdf-canvas.js` (merender halaman PDF ke `<canvas>` untuk
+  tool interaktif), `views/` (Home, Settings, dan tool dengan UI khusus),
+  routing berbasis hash.
+- `src/core/` — orkestrasi lintas-fitur: siklus hidup file
+  (`pipeline.js`), penyimpanan sementara batch (`file-store.js`), jembatan
+  worker (`worker-bridge.js`).
+
+Lisensi pihak ketiga: lihat [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md).
+Rencana pengembangan lanjutan & keterbatasan yang disengaja: lihat
+[ROADMAP.md](./ROADMAP.md).
+
+### Tumpukan teknologi
+
+Vite, vanilla JavaScript, pdf-lib, pdfjs-dist, mammoth, xlsx, pptxgenjs,
+tesseract.js, node-forge, libarchive.js, html2canvas. Diuji dengan Vitest
+dan Playwright.
+
+## Lisensi
+
+MIT — lihat [LICENSE](./LICENSE).

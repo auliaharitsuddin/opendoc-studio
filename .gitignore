@@ -7,3 +7,4 @@ playwright-report/
 dist/
 .env
 .env.*
+PROMPT.md
