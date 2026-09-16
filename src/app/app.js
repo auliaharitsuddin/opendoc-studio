@@ -1,5 +1,6 @@
 import './styles/theme.css';
-import { onRouteChange } from './router.js';
+import { onRouteChange, parseRoute } from './router.js';
+import { initLang, onLangChange } from './i18n.js';
 import { renderSidebar } from './sidebar.js';
 import { renderHome } from './views/home.js';
 import { renderSettings } from './views/settings.js';
@@ -57,6 +58,7 @@ async function main() {
 
   const theme = await getStoredTheme();
   applyTheme(theme);
+  initLang();
 
   function renderContent(route) {
     contentSlot.innerHTML = '';
@@ -90,6 +92,7 @@ async function main() {
   }
 
   onRouteChange(renderContent);
+  onLangChange(() => renderContent(parseRoute(location.hash)));
 }
 
 main();

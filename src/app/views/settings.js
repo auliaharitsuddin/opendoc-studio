@@ -1,4 +1,5 @@
 import { purgeAllScratch } from '../../core/file-store.js';
+import { t } from '../i18n.js';
 
 function el(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
@@ -30,32 +31,32 @@ export function renderSettings({ theme, onThemeChange }) {
       class: 'btn btn-secondary',
       onclick: async () => {
         purgeButton.disabled = true;
-        purgeButton.textContent = 'Menghapus...';
+        purgeButton.textContent = t('Menghapus...');
         await purgeAllScratch();
-        purgeButton.textContent = '✓ Data lokal sudah dihapus';
+        purgeButton.textContent = t('✓ Data lokal sudah dihapus');
       }
     },
-    'Hapus semua data sekarang'
+    t('Hapus semua data sekarang')
   );
 
   root.append(
-    el('div', { class: 'workspace-header' }, [el('h1', {}, 'Pengaturan')]),
+    el('div', { class: 'workspace-header' }, [el('h1', {}, t('Pengaturan'))]),
     el('div', { class: 'settings-section' }, [
-      el('h2', {}, 'Tampilan'),
-      el('label', { class: 'field' }, [el('span', { class: 'field-label' }, 'Tema'), themeSelect])
+      el('h2', {}, t('Tampilan')),
+      el('label', { class: 'field' }, [el('span', { class: 'field-label' }, t('Tema')), themeSelect])
     ]),
     el('div', { class: 'settings-section' }, [
-      el('h2', {}, 'Privasi & Penyimpanan'),
+      el('h2', {}, t('Privasi & Penyimpanan')),
       el(
         'p',
         {},
-        'OpenDoc Studio tidak mengunggah file Anda ke server manapun. Sebagian besar alat memproses file sepenuhnya di memori dan tidak pernah menyentuh penyimpanan permanen. Hanya fitur batch/otomasi (jika aktif) menggunakan penyimpanan sementara di browser, yang otomatis dibersihkan.'
+        t('OpenDoc Studio tidak mengunggah file Anda ke server manapun. Sebagian besar alat memproses file sepenuhnya di memori dan tidak pernah menyentuh penyimpanan permanen. Hanya fitur batch/otomasi (jika aktif) menggunakan penyimpanan sementara di browser, yang otomatis dibersihkan.')
       ),
       purgeButton
     ]),
     el('div', { class: 'settings-section' }, [
-      el('h2', {}, 'Tentang'),
-      el('p', {}, 'OpenDoc Studio v0.1.0 — perangkat lunak bebas & terbuka (MIT). Lihat README.md dan ROADMAP.md di repositori untuk detail.')
+      el('h2', {}, t('Tentang')),
+      el('p', {}, t('OpenDoc Studio v0.1.0 — perangkat lunak bebas & terbuka (MIT). Lihat README.md dan ROADMAP.md di repositori untuk detail.'))
     ])
   );
   return root;

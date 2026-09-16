@@ -1,4 +1,6 @@
 import { TOOLS, CATEGORIES } from '../tool-registry.js';
+import { EN_TOOLS } from '../tool-registry.en.js';
+import { t, categoryLabel, toolTitle, toolDescription } from '../i18n.js';
 
 function el(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
@@ -17,18 +19,18 @@ function el(tag, attrs = {}, children = []) {
 function toolCard(tool) {
   const card = el('a', { class: `tool-card${tool.status === 'soon' ? ' tool-card-soon' : ''}`, href: `#/tool/${tool.id}` }, [
     el('div', { class: 'tool-card-title' }, [
-      tool.title,
-      tool.status === 'soon' ? el('span', { class: 'badge badge-soon' }, 'Segera Hadir') : null,
-      tool.status === 'beta' ? el('span', { class: 'badge badge-beta' }, 'Beta') : null
+      toolTitle(tool, EN_TOOLS),
+      tool.status === 'soon' ? el('span', { class: 'badge badge-soon' }, t('Segera Hadir')) : null,
+      tool.status === 'beta' ? el('span', { class: 'badge badge-beta' }, t('Beta')) : null
     ]),
-    el('div', { class: 'tool-card-desc' }, tool.description)
+    el('div', { class: 'tool-card-desc' }, toolDescription(tool, EN_TOOLS))
   ]);
   return card;
 }
 
 export function renderHome({ categoryFilter } = {}) {
   const root = el('div', { class: 'home' });
-  const search = el('input', { type: 'search', class: 'search-input', placeholder: 'Cari alat… (mis. gabung, kompres, sav, ocr)' });
+  const search = el('input', { type: 'search', class: 'search-input', placeholder: t('Cari alat… (mis. gabung, kompres, sav, ocr)') });
   const grid = el('div', { class: 'tool-grid' });
 
   function renderGrid() {
@@ -37,16 +39,19 @@ export function renderHome({ categoryFilter } = {}) {
     const groups = categoryFilter ? CATEGORIES.filter((c) => c.id === categoryFilter) : CATEGORIES;
 
     for (const cat of groups) {
-      const tools = TOOLS.filter((t) => t.category === cat.id).filter(
-        (t) => !query || t.title.toLowerCase().includes(query) || t.description.toLowerCase().includes(query)
+      const tools = TOOLS.filter((tool) => tool.category === cat.id).filter(
+        (tool) =>
+          !query ||
+          toolTitle(tool, EN_TOOLS).toLowerCase().includes(query) ||
+          toolDescription(tool, EN_TOOLS).toLowerCase().includes(query)
       );
       if (tools.length === 0) continue;
-      grid.appendChild(el('h2', { class: 'category-heading' }, cat.label));
+      grid.appendChild(el('h2', { class: 'category-heading' }, categoryLabel(cat)));
       const row = el('div', { class: 'tool-row' }, tools.map(toolCard));
       grid.appendChild(row);
     }
     if (!grid.children.length) {
-      grid.appendChild(el('p', { class: 'empty-state' }, 'Tidak ada alat yang cocok.'));
+      grid.appendChild(el('p', { class: 'empty-state' }, t('Tidak ada alat yang cocok.')));
     }
   }
 
@@ -56,7 +61,7 @@ export function renderHome({ categoryFilter } = {}) {
   root.append(
     el('div', { class: 'home-header' }, [
       el('h1', {}, 'OpenDoc Studio'),
-      el('p', { class: 'home-tagline' }, 'Editor, konverter, dan pengaman dokumen — 100% berjalan di browser Anda.')
+      el('p', { class: 'home-tagline' }, t('Editor, konverter, dan pengaman dokumen — 100% berjalan di browser Anda.'))
     ]),
     search,
     grid
