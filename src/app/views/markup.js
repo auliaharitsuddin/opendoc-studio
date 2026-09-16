@@ -1,6 +1,7 @@
 import { el } from '../components/dom.js';
 import { renderPdfPageToCanvas } from '../components/pdf-canvas.js';
 import { downloadResult, suggestOutputName } from '../../core/pipeline.js';
+import { t } from '../i18n.js';
 
 const HIGHLIGHT_COLOR = { r: 1, g: 1, b: 0 };
 const INK_COLOR = { r: 0.86, g: 0.15, b: 0.15 };
@@ -19,7 +20,7 @@ export function renderMarkup() {
   const fileInput = el('input', { type: 'file', accept: '.pdf', class: 'file-input' });
   const dropzone = el('div', { class: 'dropzone' }, [
     el('div', { class: 'dropzone-icon' }, '🖍️'),
-    el('div', {}, 'Pilih PDF untuk disorot / dicoret'),
+    el('div', {}, t('Pilih PDF untuk disorot / dicoret')),
     fileInput
   ]);
   dropzone.addEventListener('click', (e) => {
@@ -27,14 +28,14 @@ export function renderMarkup() {
   });
   fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
 
-  const highlightBtn = el('button', { class: 'btn btn-primary', onclick: () => setMode('highlight') }, '🖊️ Sorot (Highlight)');
-  const inkBtn = el('button', { class: 'btn btn-secondary', onclick: () => setMode('ink') }, '✏️ Coret Tangan (Ink)');
-  const stickyBtn = el('button', { class: 'btn btn-secondary', onclick: () => setMode('sticky') }, '📌 Catatan Tempel');
+  const highlightBtn = el('button', { class: 'btn btn-primary', onclick: () => setMode('highlight') }, `🖊️ ${t('Sorot (Highlight)')}`);
+  const inkBtn = el('button', { class: 'btn btn-secondary', onclick: () => setMode('ink') }, `✏️ ${t('Coret Tangan (Ink)')}`);
+  const stickyBtn = el('button', { class: 'btn btn-secondary', onclick: () => setMode('sticky') }, `📌 ${t('Catatan Tempel')}`);
 
   const canvasStack = el('div', { class: 'canvas-stack' });
-  const statusLine = el('div', { class: 'progress-label' }, 'Pilih PDF untuk mulai menandai.');
+  const statusLine = el('div', { class: 'progress-label' }, t('Pilih PDF untuk mulai menandai.'));
   const itemList = el('ul', { class: 'file-list' });
-  const applyBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: applyAndDownload }, 'Terapkan & Unduh PDF');
+  const applyBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: applyAndDownload }, t('Terapkan & Unduh PDF'));
   const resultArea = el('div', { class: 'result-area hidden' });
 
   async function loadFile(f) {
@@ -65,7 +66,7 @@ export function renderMarkup() {
 
   function updateStatus() {
     statusLine.textContent =
-      mode === 'sticky' ? 'Klik pada halaman untuk menambahkan catatan tempel.' : 'Klik & seret pada halaman untuk menyorot atau mencoret.';
+      mode === 'sticky' ? t('Klik pada halaman untuk menambahkan catatan tempel.') : t('Klik & seret pada halaman untuk menyorot atau mencoret.');
   }
 
   function setMode(next) {
@@ -139,9 +140,9 @@ export function renderMarkup() {
   }
 
   function commitSticky(p) {
-    const text = prompt('Isi catatan tempel:', '');
+    const text = prompt(t('Isi catatan tempel:'), '');
     if (!text) return;
-    const author = prompt('Nama penulis (opsional):', '') || '';
+    const author = prompt(t('Nama penulis (opsional):'), '') || '';
     const [x, y] = pageCtx.canvasToPdfPoint(p[0], p[1]);
     items.push({ type: 'sticky', pageIndex: 0, x, y, text, author, _canvas: p });
     renderItemList();
@@ -194,7 +195,7 @@ export function renderMarkup() {
   function renderItemList() {
     itemList.innerHTML = '';
     items.forEach((item, i) => {
-      const label = item.type === 'highlight' ? 'Sorotan' : item.type === 'ink' ? 'Coretan' : `Catatan: "${item.text}"`;
+      const label = item.type === 'highlight' ? t('Sorotan') : item.type === 'ink' ? t('Coretan') : `${t('Catatan')}: "${item.text}"`;
       itemList.appendChild(
         el('li', {}, [`${i + 1}. ${label}  `, el('button', { class: 'btn-icon', onclick: () => removeItem(i) }, '✕')])
       );
@@ -229,15 +230,15 @@ export function renderMarkup() {
           onclick: async () => {
             downloadBtn.disabled = true;
             await downloadResult(blob, filename);
-            downloadBtn.textContent = '✓ Diunduh & dihapus dari memori';
+            downloadBtn.textContent = t('✓ Diunduh & dihapus dari memori');
           }
         },
-        `Unduh ${filename}`
+        `${t('Unduh')} ${filename}`
       );
-      resultArea.append(el('div', { class: 'alert alert-success' }, '✅ Anotasi berhasil diterapkan.'), downloadBtn);
+      resultArea.append(el('div', { class: 'alert alert-success' }, t('✅ Anotasi berhasil diterapkan.')), downloadBtn);
     } catch (err) {
       resultArea.classList.remove('hidden');
-      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `Gagal: ${err.message}`));
+      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `${t('Gagal')}: ${err.message}`));
     } finally {
       applyBtn.disabled = false;
     }
@@ -245,19 +246,19 @@ export function renderMarkup() {
 
   root.append(
     el('div', { class: 'workspace-header' }, [
-      el('h1', {}, 'Komentar & Markup'),
+      el('h1', {}, t('Komentar & Markup')),
       el(
         'p',
         { class: 'workspace-desc' },
-        'Sorot (highlight) teks, buat coretan tangan (ink), dan tambahkan catatan tempel — semua dengan klik langsung di atas pratinjau halaman 1. Anotasi PDF asli, terlihat di Adobe Reader/PDF viewer manapun.'
+        t('Sorot (highlight) teks, buat coretan tangan (ink), dan tambahkan catatan tempel — semua dengan klik langsung di atas pratinjau halaman 1. Anotasi PDF asli, terlihat di Adobe Reader/PDF viewer manapun.')
       ),
-      el('div', { class: 'privacy-badge' }, '🔒 Diproses 100% lokal di browser Anda.')
+      el('div', { class: 'privacy-badge' }, t('🔒 Diproses 100% lokal di browser Anda.'))
     ]),
     dropzone,
     el('div', { class: 'actions' }, [highlightBtn, inkBtn, stickyBtn]),
     statusLine,
     canvasStack,
-    el('h3', {}, 'Anotasi Ditambahkan'),
+    el('h3', {}, t('Anotasi Ditambahkan')),
     itemList,
     el('div', { class: 'actions' }, [applyBtn]),
     resultArea

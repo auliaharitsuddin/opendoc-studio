@@ -1,8 +1,13 @@
 import { el } from '../components/dom.js';
 import { renderPdfPageToCanvas } from '../components/pdf-canvas.js';
 import { downloadResult, suggestOutputName } from '../../core/pipeline.js';
+import { t } from '../i18n.js';
 
 const UNIT_LABELS = { cm: 'cm', m: 'm', in: 'inci', ft: 'kaki' };
+
+function unitLabel(unit) {
+  return t(UNIT_LABELS[unit]);
+}
 
 export function renderMeasure() {
   const root = el('div', { class: 'workspace' });
@@ -17,7 +22,7 @@ export function renderMeasure() {
   const fileInput = el('input', { type: 'file', accept: '.pdf', class: 'file-input' });
   const dropzone = el('div', { class: 'dropzone' }, [
     el('div', { class: 'dropzone-icon' }, '📐'),
-    el('div', {}, 'Pilih PDF (gambar teknik/denah) untuk diukur'),
+    el('div', {}, t('Pilih PDF (gambar teknik/denah) untuk diukur')),
     fileInput
   ]);
   dropzone.addEventListener('click', (e) => {
@@ -26,20 +31,20 @@ export function renderMeasure() {
   fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
 
   const canvasWrap = el('div', { class: 'measure-canvas-wrap' });
-  const statusLine = el('div', { class: 'progress-label' }, 'Muat PDF untuk mulai kalibrasi.');
-  const calibrateBtn = el('button', { class: 'btn btn-secondary', onclick: () => setMode('calibrate') }, '1. Kalibrasi Skala');
-  const distanceBtn = el('button', { class: 'btn btn-secondary', disabled: '', onclick: () => setMode('distance') }, 'Ukur Jarak');
-  const areaBtn = el('button', { class: 'btn btn-secondary', disabled: '', onclick: () => setMode('area') }, 'Ukur Luas');
-  const finishPolygonBtn = el('button', { class: 'btn btn-secondary hidden', onclick: finishPolygon }, 'Selesai Poligon');
+  const statusLine = el('div', { class: 'progress-label' }, t('Muat PDF untuk mulai kalibrasi.'));
+  const calibrateBtn = el('button', { class: 'btn btn-secondary', onclick: () => setMode('calibrate') }, `1. ${t('Kalibrasi Skala')}`);
+  const distanceBtn = el('button', { class: 'btn btn-secondary', disabled: '', onclick: () => setMode('distance') }, t('Ukur Jarak'));
+  const areaBtn = el('button', { class: 'btn btn-secondary', disabled: '', onclick: () => setMode('area') }, t('Ukur Luas'));
+  const finishPolygonBtn = el('button', { class: 'btn btn-secondary hidden', onclick: finishPolygon }, t('Selesai Poligon'));
   const measurementList = el('ul', { class: 'file-list' });
-  const exportBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: exportPdf }, 'Ekspor PDF Beranotasi');
+  const exportBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: exportPdf }, t('Ekspor PDF Beranotasi'));
   const resultArea = el('div', { class: 'result-area hidden' });
 
   async function loadFile(f) {
     if (!f) return;
     file = f;
     pageCtx?.destroy?.();
-    statusLine.textContent = 'Merender halaman...';
+    statusLine.textContent = t('Merender halaman...');
     pageCtx = await renderPdfPageToCanvas(f, { pageIndex: 0, scale: 1.4 });
     canvasWrap.innerHTML = '';
     canvasWrap.appendChild(pageCtx.canvas);
@@ -48,16 +53,16 @@ export function renderMeasure() {
     measurements.length = 0;
     renderMeasurementList();
     setMode('calibrate');
-    statusLine.textContent = 'Klik dua titik pada gambar untuk kalibrasi skala.';
+    statusLine.textContent = t('Klik dua titik pada gambar untuk kalibrasi skala.');
   }
 
   function setMode(next) {
     mode = next;
     pendingClicks = [];
     finishPolygonBtn.classList.toggle('hidden', mode !== 'area');
-    if (mode === 'calibrate') statusLine.textContent = 'Klik dua titik yang jaraknya Anda ketahui di dunia nyata.';
-    if (mode === 'distance') statusLine.textContent = 'Klik dua titik untuk mengukur jarak.';
-    if (mode === 'area') statusLine.textContent = 'Klik setiap sudut poligon, lalu tekan "Selesai Poligon".';
+    if (mode === 'calibrate') statusLine.textContent = t('Klik dua titik yang jaraknya Anda ketahui di dunia nyata.');
+    if (mode === 'distance') statusLine.textContent = t('Klik dua titik untuk mengukur jarak.');
+    if (mode === 'area') statusLine.textContent = t('Klik setiap sudut poligon, lalu tekan "Selesai Poligon".');
   }
 
   function onCanvasClick(e) {
@@ -71,21 +76,21 @@ export function renderMeasure() {
 
     if (mode === 'calibrate' && pendingClicks.length === 2) {
       const pixelDist = Math.hypot(pendingClicks[1][0] - pendingClicks[0][0], pendingClicks[1][1] - pendingClicks[0][1]);
-      const realDistanceStr = prompt('Berapa jarak sebenarnya antara dua titik ini?', '100');
+      const realDistanceStr = prompt(t('Berapa jarak sebenarnya antara dua titik ini?'), '100');
       const realDistance = parseFloat(realDistanceStr);
       if (realDistance > 0) {
         scalePxPerUnit = pixelDist / realDistance;
-        statusLine.textContent = `Kalibrasi selesai: 1 ${UNIT_LABELS[unit]} ≈ ${scalePxPerUnit.toFixed(2)} pt PDF.`;
+        statusLine.textContent = `${t('Kalibrasi selesai')}: 1 ${unitLabel(unit)} ≈ ${scalePxPerUnit.toFixed(2)} pt PDF.`;
         distanceBtn.disabled = false;
         areaBtn.disabled = false;
       } else {
-        statusLine.textContent = 'Kalibrasi dibatalkan (jarak tidak valid).';
+        statusLine.textContent = t('Kalibrasi dibatalkan (jarak tidak valid).');
       }
       pendingClicks = [];
     } else if (mode === 'distance' && pendingClicks.length === 2) {
       const pixelDist = Math.hypot(pendingClicks[1][0] - pendingClicks[0][0], pendingClicks[1][1] - pendingClicks[0][1]);
       const realDist = scalePxPerUnit ? pixelDist / scalePxPerUnit : pixelDist;
-      const label = `${realDist.toFixed(2)} ${UNIT_LABELS[unit]}`;
+      const label = `${realDist.toFixed(2)} ${unitLabel(unit)}`;
       measurements.push({ points: [...pendingClicks], label, type: 'distance' });
       renderMeasurementList();
       pendingClicks = [];
@@ -94,12 +99,12 @@ export function renderMeasure() {
 
   function finishPolygon() {
     if (pendingClicks.length < 3) {
-      statusLine.textContent = 'Butuh minimal 3 titik untuk poligon.';
+      statusLine.textContent = t('Butuh minimal 3 titik untuk poligon.');
       return;
     }
     const pixelArea = shoelace(pendingClicks);
     const realArea = scalePxPerUnit ? pixelArea / (scalePxPerUnit * scalePxPerUnit) : pixelArea;
-    const label = `${realArea.toFixed(2)} ${UNIT_LABELS[unit]}²`;
+    const label = `${realArea.toFixed(2)} ${unitLabel(unit)}²`;
     measurements.push({ points: [...pendingClicks], label, type: 'area' });
     renderMeasurementList();
     pendingClicks = [];
@@ -126,7 +131,7 @@ export function renderMeasure() {
   function renderMeasurementList() {
     measurementList.innerHTML = '';
     measurements.forEach((m, i) => {
-      measurementList.appendChild(el('li', {}, `${i + 1}. [${m.type === 'area' ? 'Luas' : 'Jarak'}] ${m.label}`));
+      measurementList.appendChild(el('li', {}, `${i + 1}. [${m.type === 'area' ? t('Luas') : t('Jarak')}] ${m.label}`));
     });
     exportBtn.disabled = measurements.length === 0;
   }
@@ -152,15 +157,15 @@ export function renderMeasure() {
           onclick: async () => {
             downloadBtn.disabled = true;
             await downloadResult(blob, filename);
-            downloadBtn.textContent = '✓ Diunduh & dihapus dari memori';
+            downloadBtn.textContent = t('✓ Diunduh & dihapus dari memori');
           }
         },
-        `Unduh ${filename}`
+        `${t('Unduh')} ${filename}`
       );
-      resultArea.append(el('div', { class: 'alert alert-success' }, '✅ Anotasi pengukuran siap diunduh.'), downloadBtn);
+      resultArea.append(el('div', { class: 'alert alert-success' }, t('✅ Anotasi pengukuran siap diunduh.')), downloadBtn);
     } catch (err) {
       resultArea.classList.remove('hidden');
-      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `Gagal: ${err.message}`));
+      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `${t('Gagal')}: ${err.message}`));
     } finally {
       exportBtn.disabled = false;
     }
@@ -169,7 +174,7 @@ export function renderMeasure() {
   const unitSelect = el(
     'select',
     { class: 'field-input' },
-    Object.entries(UNIT_LABELS).map(([value, label]) => el('option', { value }, label))
+    Object.entries(UNIT_LABELS).map(([value, label]) => el('option', { value }, t(label)))
   );
   unitSelect.addEventListener('change', () => {
     unit = unitSelect.value;
@@ -177,16 +182,16 @@ export function renderMeasure() {
 
   root.append(
     el('div', { class: 'workspace-header' }, [
-      el('h1', {}, 'Alat Ukur'),
-      el('p', { class: 'workspace-desc' }, 'Kalibrasi skala gambar berdasarkan satu jarak yang Anda ketahui, lalu ukur jarak/luas lainnya. Hasil bisa diekspor sebagai PDF beranotasi.'),
-      el('div', { class: 'privacy-badge' }, '🔒 Diproses 100% lokal di browser Anda.')
+      el('h1', {}, t('Alat Ukur')),
+      el('p', { class: 'workspace-desc' }, t('Kalibrasi skala gambar berdasarkan satu jarak yang Anda ketahui, lalu ukur jarak/luas lainnya. Hasil bisa diekspor sebagai PDF beranotasi.')),
+      el('div', { class: 'privacy-badge' }, t('🔒 Diproses 100% lokal di browser Anda.'))
     ]),
     dropzone,
-    el('div', { class: 'options-form' }, [el('label', { class: 'field' }, [el('span', { class: 'field-label' }, 'Satuan'), unitSelect])]),
+    el('div', { class: 'options-form' }, [el('label', { class: 'field' }, [el('span', { class: 'field-label' }, t('Satuan')), unitSelect])]),
     el('div', { class: 'actions' }, [calibrateBtn, distanceBtn, areaBtn, finishPolygonBtn]),
     statusLine,
     canvasWrap,
-    el('h3', {}, 'Daftar Pengukuran'),
+    el('h3', {}, t('Daftar Pengukuran')),
     measurementList,
     el('div', { class: 'actions' }, [exportBtn]),
     resultArea

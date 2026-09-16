@@ -1,6 +1,7 @@
 import { el } from '../components/dom.js';
 import { renderAllPagesToCanvases } from '../components/pdf-canvas.js';
 import { downloadResult, suggestOutputName } from '../../core/pipeline.js';
+import { t } from '../i18n.js';
 
 const RENDER_SCALE = 1.4;
 const HIT_PADDING = 3; // pt, PDF space — makes thin lines easier to click without changing the drawn cover box
@@ -15,7 +16,7 @@ export function renderEditText() {
   const fileInput = el('input', { type: 'file', accept: '.pdf', class: 'file-input' });
   const dropzone = el('div', { class: 'dropzone' }, [
     el('div', { class: 'dropzone-icon' }, '✎'),
-    el('div', {}, 'Pilih PDF untuk diedit teksnya'),
+    el('div', {}, t('Pilih PDF untuk diedit teksnya')),
     fileInput
   ]);
   dropzone.addEventListener('click', (e) => {
@@ -24,16 +25,16 @@ export function renderEditText() {
   fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
 
   const canvasWrap = el('div', { class: 'measure-canvas-wrap edit-text-wrap' });
-  const statusLine = el('div', { class: 'progress-label' }, 'Pilih PDF untuk mulai mengedit teks.');
+  const statusLine = el('div', { class: 'progress-label' }, t('Pilih PDF untuk mulai mengedit teks.'));
   const editList = el('ul', { class: 'file-list' });
-  const applyBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: applyAndDownload }, 'Terapkan & Unduh PDF');
+  const applyBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: applyAndDownload }, t('Terapkan & Unduh PDF'));
   const resultArea = el('div', { class: 'result-area hidden' });
 
   async function loadFile(f) {
     if (!f) return;
     file = f;
     closeActiveInput(false);
-    statusLine.textContent = 'Membaca dokumen...';
+    statusLine.textContent = t('Membaca dokumen...');
     canvasWrap.innerHTML = '';
     edits.clear();
     renderEditList();
@@ -47,7 +48,7 @@ export function renderEditText() {
     pagesData = textPages.map((p, i) => ({ ...p, canvas: canvases[i] }));
 
     pagesData.forEach((p) => {
-      const pageWrap = el('div', { class: 'edit-text-page' }, [el('div', { class: 'file-preview-page-label' }, `Halaman ${p.pageIndex + 1}`)]);
+      const pageWrap = el('div', { class: 'edit-text-page' }, [el('div', { class: 'file-preview-page-label' }, `${t('Halaman')} ${p.pageIndex + 1}`)]);
       pageWrap.appendChild(p.canvas);
       pageWrap.addEventListener('click', (e) => onCanvasClick(e, p, pageWrap));
       canvasWrap.appendChild(pageWrap);
@@ -55,8 +56,8 @@ export function renderEditText() {
 
     const totalTextRuns = pagesData.reduce((sum, p) => sum + p.items.length, 0);
     statusLine.textContent = totalTextRuns
-      ? `Ditemukan ${totalTextRuns} baris teks di ${pagesData.length} halaman. Klik teks pada halaman mana pun untuk menggantinya.`
-      : 'Tidak ada teks terdeteksi di dokumen ini (mungkin hasil scan — gunakan alat OCR dulu).';
+      ? `${t('Ditemukan')} ${totalTextRuns} ${t('baris teks di')} ${pagesData.length} ${t('halaman. Klik teks pada halaman mana pun untuk menggantinya.')}`
+      : t('Tidak ada teks terdeteksi di dokumen ini (mungkin hasil scan — gunakan alat OCR dulu).');
   }
 
   function pdfToCanvasRect(item, pageHeight) {
@@ -86,7 +87,7 @@ export function renderEditText() {
         pdfY <= item.y + item.height + HIT_PADDING
     );
     if (idx === -1) {
-      statusLine.textContent = 'Tidak ada teks terdeteksi di posisi itu — coba klik lebih tepat di atas teks.';
+      statusLine.textContent = t('Tidak ada teks terdeteksi di posisi itu — coba klik lebih tepat di atas teks.');
       return;
     }
 
@@ -201,7 +202,7 @@ export function renderEditText() {
     for (const [key, e] of edits) {
       const pageLabel = Number(key.split(':')[0]) + 1;
       editList.appendChild(
-        el('li', {}, [`Hal. ${pageLabel}: "${e.newText}"  `, el('button', { class: 'btn-icon', onclick: () => removeEdit(key) }, '✕')])
+        el('li', {}, [`${t('Hal.')} ${pageLabel}: "${e.newText}"  `, el('button', { class: 'btn-icon', onclick: () => removeEdit(key) }, '✕')])
       );
     }
     applyBtn.disabled = edits.size === 0;
@@ -225,15 +226,15 @@ export function renderEditText() {
           onclick: async () => {
             downloadBtn.disabled = true;
             await downloadResult(blob, filename);
-            downloadBtn.textContent = '✓ Diunduh & dihapus dari memori';
+            downloadBtn.textContent = t('✓ Diunduh & dihapus dari memori');
           }
         },
-        `Unduh ${filename}`
+        `${t('Unduh')} ${filename}`
       );
-      resultArea.append(el('div', { class: 'alert alert-success' }, '✅ Teks berhasil diganti.'), downloadBtn);
+      resultArea.append(el('div', { class: 'alert alert-success' }, t('✅ Teks berhasil diganti.')), downloadBtn);
     } catch (err) {
       resultArea.classList.remove('hidden');
-      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `Gagal: ${err.message}`));
+      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `${t('Gagal')}: ${err.message}`));
     } finally {
       applyBtn.disabled = false;
     }
@@ -241,18 +242,20 @@ export function renderEditText() {
 
   root.append(
     el('div', { class: 'workspace-header' }, [
-      el('h1', {}, 'Edit Teks Halaman'),
+      el('h1', {}, t('Edit Teks Halaman')),
       el(
         'p',
         { class: 'workspace-desc' },
-        'Klik teks yang sudah ada di halaman berapa pun untuk menggantinya langsung di tempat. Teks lama ditutup dengan warna latar yang disesuaikan otomatis ke halaman, lalu teks baru ditulis di posisi yang sama menggunakan font standar terdekat (serif/sans-serif/monospace) — cocok untuk koreksi singkat/typo, bukan penggantian paragraf panjang, dan font pengganti mungkin tidak identik dengan font asli dokumen.'
+        t(
+          'Klik teks yang sudah ada di halaman berapa pun untuk menggantinya langsung di tempat. Teks lama ditutup dengan warna latar yang disesuaikan otomatis ke halaman, lalu teks baru ditulis di posisi yang sama menggunakan font standar terdekat (serif/sans-serif/monospace) — cocok untuk koreksi singkat/typo, bukan penggantian paragraf panjang, dan font pengganti mungkin tidak identik dengan font asli dokumen.'
+        )
       ),
-      el('div', { class: 'privacy-badge' }, '🔒 Diproses 100% lokal di browser Anda.')
+      el('div', { class: 'privacy-badge' }, t('🔒 Diproses 100% lokal di browser Anda.'))
     ]),
     dropzone,
     statusLine,
     canvasWrap,
-    el('h3', {}, 'Perubahan Tertunda'),
+    el('h3', {}, t('Perubahan Tertunda')),
     editList,
     el('div', { class: 'actions' }, [applyBtn]),
     resultArea

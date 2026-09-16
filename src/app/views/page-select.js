@@ -1,6 +1,7 @@
 import { el } from '../components/dom.js';
 import { renderAllPagesToCanvases } from '../components/pdf-canvas.js';
 import { downloadResult, suggestOutputName } from '../../core/pipeline.js';
+import { t } from '../i18n.js';
 
 const THUMB_SCALE = 0.35;
 
@@ -22,18 +23,18 @@ function renderPageSelector({ headerTitle, headerDesc, icon, hint, buildAndRun }
   });
   fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
 
-  const statusLine = el('div', { class: 'progress-label' }, 'Pilih PDF untuk menampilkan halaman.');
+  const statusLine = el('div', { class: 'progress-label' }, t('Pilih PDF untuk menampilkan halaman.'));
   const grid = el('div', { class: 'page-picker-grid' });
-  const selectAllBtn = el('button', { class: 'btn btn-secondary', disabled: '', onclick: selectAll }, 'Pilih Semua');
-  const selectNoneBtn = el('button', { class: 'btn btn-secondary', disabled: '', onclick: selectNone }, 'Kosongkan Pilihan');
-  const runBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: runAction }, 'Proses');
+  const selectAllBtn = el('button', { class: 'btn btn-secondary', disabled: '', onclick: selectAll }, t('Pilih Semua'));
+  const selectNoneBtn = el('button', { class: 'btn btn-secondary', disabled: '', onclick: selectNone }, t('Kosongkan Pilihan'));
+  const runBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: runAction }, t('Proses'));
   const resultArea = el('div', { class: 'result-area hidden' });
 
   async function loadFile(f) {
     if (!f) return;
     file = f;
     selected.clear();
-    statusLine.textContent = 'Merender halaman...';
+    statusLine.textContent = t('Merender halaman...');
     grid.innerHTML = '';
     runBtn.disabled = true;
     selectAllBtn.disabled = true;
@@ -43,7 +44,7 @@ function renderPageSelector({ headerTitle, headerDesc, icon, hint, buildAndRun }
     pageCount = canvases.length;
 
     canvases.forEach((canvas, idx) => {
-      const thumb = el('div', { class: 'page-picker-thumb' }, [canvas, el('div', { class: 'page-picker-label' }, `Hal. ${idx + 1}`)]);
+      const thumb = el('div', { class: 'page-picker-thumb' }, [canvas, el('div', { class: 'page-picker-label' }, `${t('Hal.')} ${idx + 1}`)]);
       thumb.addEventListener('click', () => toggle(idx, thumb));
       grid.appendChild(thumb);
     });
@@ -78,8 +79,8 @@ function renderPageSelector({ headerTitle, headerDesc, icon, hint, buildAndRun }
   function updateStatus() {
     runBtn.disabled = selected.size === 0;
     statusLine.textContent = pageCount
-      ? `${selected.size} dari ${pageCount} halaman dipilih.`
-      : 'Pilih PDF untuk menampilkan halaman.';
+      ? `${selected.size} ${t('dari')} ${pageCount} ${t('halaman dipilih.')}`
+      : t('Pilih PDF untuk menampilkan halaman.');
   }
 
   async function runAction() {
@@ -98,15 +99,15 @@ function renderPageSelector({ headerTitle, headerDesc, icon, hint, buildAndRun }
           onclick: async () => {
             downloadBtn.disabled = true;
             await downloadResult(blob, filename);
-            downloadBtn.textContent = '✓ Diunduh & dihapus dari memori';
+            downloadBtn.textContent = t('✓ Diunduh & dihapus dari memori');
           }
         },
-        `Unduh ${filename}`
+        `${t('Unduh')} ${filename}`
       );
-      resultArea.append(el('div', { class: 'alert alert-success' }, '✅ Berhasil diproses.'), downloadBtn);
+      resultArea.append(el('div', { class: 'alert alert-success' }, t('✅ Berhasil diproses.')), downloadBtn);
     } catch (err) {
       resultArea.classList.remove('hidden');
-      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `Gagal: ${err.message}`));
+      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `${t('Gagal')}: ${err.message}`));
     } finally {
       runBtn.disabled = selected.size === 0;
     }
@@ -116,7 +117,7 @@ function renderPageSelector({ headerTitle, headerDesc, icon, hint, buildAndRun }
     el('div', { class: 'workspace-header' }, [
       el('h1', {}, headerTitle),
       el('p', { class: 'workspace-desc' }, headerDesc),
-      el('div', { class: 'privacy-badge' }, '🔒 Diproses 100% lokal di browser Anda.')
+      el('div', { class: 'privacy-badge' }, t('🔒 Diproses 100% lokal di browser Anda.'))
     ]),
     dropzone,
     statusLine,
@@ -131,12 +132,12 @@ function renderPageSelector({ headerTitle, headerDesc, icon, hint, buildAndRun }
 
 export function renderExtractPages() {
   return renderPageSelector({
-    headerTitle: 'Ekstrak Halaman',
-    headerDesc: 'Klik halaman yang ingin diambil (bisa lebih dari satu), lalu unduh sebagai dokumen baru berisi hanya halaman terpilih.',
+    headerTitle: t('Ekstrak Halaman'),
+    headerDesc: t('Klik halaman yang ingin diambil (bisa lebih dari satu), lalu unduh sebagai dokumen baru berisi hanya halaman terpilih.'),
     icon: '📑',
-    hint: 'Pilih PDF untuk memilih halaman yang diambil',
+    hint: t('Pilih PDF untuk memilih halaman yang diambil'),
     async buildAndRun(buf, indices, name) {
-      if (indices.length === 0) throw new Error('Pilih minimal satu halaman.');
+      if (indices.length === 0) throw new Error(t('Pilih minimal satu halaman.'));
       const { extractPages } = await import('../../engines/pdf/organize.js');
       const result = await extractPages(buf, indices);
       return { blob: new Blob([result], { type: 'application/pdf' }), filename: suggestOutputName(name, 'halaman-terpilih.pdf') };
@@ -146,12 +147,12 @@ export function renderExtractPages() {
 
 export function renderDeletePages() {
   return renderPageSelector({
-    headerTitle: 'Hapus Halaman',
-    headerDesc: 'Klik halaman yang ingin dihapus (bisa lebih dari satu), lalu unduh dokumen tanpa halaman tersebut.',
+    headerTitle: t('Hapus Halaman'),
+    headerDesc: t('Klik halaman yang ingin dihapus (bisa lebih dari satu), lalu unduh dokumen tanpa halaman tersebut.'),
     icon: '🗑️',
-    hint: 'Pilih PDF untuk memilih halaman yang dihapus',
+    hint: t('Pilih PDF untuk memilih halaman yang dihapus'),
     async buildAndRun(buf, indices, name) {
-      if (indices.length === 0) throw new Error('Pilih minimal satu halaman.');
+      if (indices.length === 0) throw new Error(t('Pilih minimal satu halaman.'));
       const { deletePages } = await import('../../engines/pdf/organize.js');
       const result = await deletePages(buf, indices);
       return { blob: new Blob([result], { type: 'application/pdf' }), filename: suggestOutputName(name, 'halaman-dihapus.pdf') };

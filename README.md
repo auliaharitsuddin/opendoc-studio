@@ -36,11 +36,9 @@ in "Edit Page Text" is not identical to the original font, or the Measure
 Tool only measures page 1 — are documented honestly in
 [ROADMAP.md](./ROADMAP.md).
 
-**Language toggle** — the sidebar, home screen, and settings page switch
+**Language toggle** — the whole app, including every tool screen, switches
 between Indonesian and English (`src/app/i18n.js`), persisted in
-`localStorage`. Individual tool screens (Automation, Digital Sign, Edit Text,
-Fill & Sign, Forms, Markup, Measure, Page Select) don't read from the toggle
-yet and still show their original-language labels regardless of the setting.
+`localStorage`.
 
 | Category | Tools |
 |---|---|
@@ -227,11 +225,9 @@ yang dipakai di "Edit Page Text" tidak identik dengan font asli, atau
 Measure Tool hanya mengukur halaman 1 — didokumentasikan dengan jujur di
 [ROADMAP.md](./ROADMAP.md).
 
-**Toggle bahasa** — sidebar, layar home, dan halaman pengaturan bisa
+**Toggle bahasa** — seluruh aplikasi, termasuk setiap layar tool, bisa
 berganti antara Indonesia dan Inggris (`src/app/i18n.js`), tersimpan di
-`localStorage`. Layar tool individual (Automation, Digital Sign, Edit Text,
-Fill & Sign, Forms, Markup, Measure, Page Select) belum membaca setting ini
-dan masih menampilkan label dalam bahasa aslinya apa pun pilihan togglenya.
+`localStorage`.
 
 | Kategori | Tool |
 |---|---|

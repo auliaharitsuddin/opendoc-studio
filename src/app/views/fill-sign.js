@@ -1,6 +1,7 @@
 import { el } from '../components/dom.js';
 import { renderPdfPageToCanvas } from '../components/pdf-canvas.js';
 import { downloadResult, suggestOutputName } from '../../core/pipeline.js';
+import { t } from '../i18n.js';
 
 const DEFAULT_IMAGE_SIZE = [160, 50];
 
@@ -16,7 +17,7 @@ export function renderFillSign() {
   const fileInput = el('input', { type: 'file', accept: '.pdf', class: 'file-input' });
   const dropzone = el('div', { class: 'dropzone' }, [
     el('div', { class: 'dropzone-icon' }, '✍️'),
-    el('div', {}, 'Pilih PDF untuk ditandatangani (halaman 1)'),
+    el('div', {}, t('Pilih PDF untuk ditandatangani (halaman 1)')),
     fileInput
   ]);
   dropzone.addEventListener('click', (e) => {
@@ -25,26 +26,26 @@ export function renderFillSign() {
   fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
 
   const modeSelect = el('select', { class: 'field-input' }, [
-    el('option', { value: 'text' }, 'Teks (ketik tanda tangan)'),
-    el('option', { value: 'image' }, 'Gambar (unggah tanda tangan)')
+    el('option', { value: 'text' }, t('Teks (ketik tanda tangan)')),
+    el('option', { value: 'image' }, t('Gambar (unggah tanda tangan)'))
   ]);
   const textValueInput = el('input', { type: 'text', class: 'field-input', value: 'Disetujui' });
   const fontSizeInput = el('input', { type: 'number', class: 'field-input', value: 18 });
   const textSection = el('div', { class: 'options-form' }, [
-    el('label', { class: 'field' }, [el('span', { class: 'field-label' }, 'Teks yang ditempel'), textValueInput]),
-    el('label', { class: 'field' }, [el('span', { class: 'field-label' }, 'Ukuran font'), fontSizeInput])
+    el('label', { class: 'field' }, [el('span', { class: 'field-label' }, t('Teks yang ditempel')), textValueInput]),
+    el('label', { class: 'field' }, [el('span', { class: 'field-label' }, t('Ukuran font')), fontSizeInput])
   ]);
 
   const imageFileInput = el('input', { type: 'file', accept: '.png,.jpg,.jpeg', class: 'field-input' });
   const imageSection = el('div', { class: 'options-form hidden' }, [
-    el('label', { class: 'field' }, [el('span', { class: 'field-label' }, 'Gambar tanda tangan (PNG/JPG)'), imageFileInput])
+    el('label', { class: 'field' }, [el('span', { class: 'field-label' }, t('Gambar tanda tangan (PNG/JPG)')), imageFileInput])
   ]);
   imageFileInput.addEventListener('change', async () => {
     const f = imageFileInput.files[0];
     if (!f) return;
     signatureImageBytes = new Uint8Array(await f.arrayBuffer());
     signatureImageName = f.name;
-    statusLine.textContent = `Gambar "${f.name}" siap — klik pada halaman untuk menempatkannya.`;
+    statusLine.textContent = `${t('Gambar')} "${f.name}" ${t('siap — klik pada halaman untuk menempatkannya.')}`;
   });
 
   modeSelect.addEventListener('change', () => {
@@ -53,14 +54,14 @@ export function renderFillSign() {
     imageSection.classList.toggle('hidden', mode !== 'image');
     statusLine.textContent =
       mode === 'image' && !signatureImageBytes
-        ? 'Unggah gambar tanda tangan dulu, lalu klik pada halaman.'
-        : 'Klik pada halaman untuk menempatkan tanda tangan.';
+        ? t('Unggah gambar tanda tangan dulu, lalu klik pada halaman.')
+        : t('Klik pada halaman untuk menempatkan tanda tangan.');
   });
 
   const canvasWrap = el('div', { class: 'measure-canvas-wrap' });
-  const statusLine = el('div', { class: 'progress-label' }, 'Pilih PDF untuk mulai menempatkan tanda tangan.');
+  const statusLine = el('div', { class: 'progress-label' }, t('Pilih PDF untuk mulai menempatkan tanda tangan.'));
   const itemList = el('ul', { class: 'file-list' });
-  const applyBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: applyAndDownload }, 'Terapkan & Unduh PDF');
+  const applyBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: applyAndDownload }, t('Terapkan & Unduh PDF'));
   const resultArea = el('div', { class: 'result-area hidden' });
 
   async function loadFile(f) {
@@ -75,8 +76,8 @@ export function renderFillSign() {
     renderItemList();
     statusLine.textContent =
       mode === 'image' && !signatureImageBytes
-        ? 'Unggah gambar tanda tangan dulu, lalu klik pada halaman.'
-        : 'Klik pada halaman untuk menempatkan tanda tangan.';
+        ? t('Unggah gambar tanda tangan dulu, lalu klik pada halaman.')
+        : t('Klik pada halaman untuk menempatkan tanda tangan.');
   }
 
   function onCanvasClick(e) {
@@ -89,14 +90,14 @@ export function renderFillSign() {
     if (mode === 'text') {
       const value = textValueInput.value.trim();
       if (!value) {
-        statusLine.textContent = 'Isi teks tanda tangan terlebih dahulu.';
+        statusLine.textContent = t('Isi teks tanda tangan terlebih dahulu.');
         return;
       }
       const fontSize = Number(fontSizeInput.value) || 18;
       items.push({ pageIndex: 0, x: pdfX, y: pdfY, kind: 'text', value, fontSize });
     } else {
       if (!signatureImageBytes) {
-        statusLine.textContent = 'Unggah gambar tanda tangan dulu, lalu klik pada halaman.';
+        statusLine.textContent = t('Unggah gambar tanda tangan dulu, lalu klik pada halaman.');
         return;
       }
       const [w, h] = DEFAULT_IMAGE_SIZE;
@@ -117,7 +118,7 @@ export function renderFillSign() {
   function renderItemList() {
     itemList.innerHTML = '';
     items.forEach((item, i) => {
-      const label = item.kind === 'text' ? `Teks: "${item.value}"` : `Gambar: ${signatureImageName}`;
+      const label = item.kind === 'text' ? `${t('Teks')}: "${item.value}"` : `${t('Gambar')}: ${signatureImageName}`;
       itemList.appendChild(
         el('li', {}, [`${i + 1}. ${label}  `, el('button', { class: 'btn-icon', onclick: () => removeItem(i) }, '✕')])
       );
@@ -148,15 +149,15 @@ export function renderFillSign() {
           onclick: async () => {
             downloadBtn.disabled = true;
             await downloadResult(blob, filename);
-            downloadBtn.textContent = '✓ Diunduh & dihapus dari memori';
+            downloadBtn.textContent = t('✓ Diunduh & dihapus dari memori');
           }
         },
-        `Unduh ${filename}`
+        `${t('Unduh')} ${filename}`
       );
-      resultArea.append(el('div', { class: 'alert alert-success' }, '✅ Tanda tangan berhasil ditempelkan.'), downloadBtn);
+      resultArea.append(el('div', { class: 'alert alert-success' }, t('✅ Tanda tangan berhasil ditempelkan.')), downloadBtn);
     } catch (err) {
       resultArea.classList.remove('hidden');
-      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `Gagal: ${err.message}`));
+      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `${t('Gagal')}: ${err.message}`));
     } finally {
       applyBtn.disabled = false;
     }
@@ -164,23 +165,23 @@ export function renderFillSign() {
 
   root.append(
     el('div', { class: 'workspace-header' }, [
-      el('h1', {}, 'Isi & Tanda Tangan'),
+      el('h1', {}, t('Isi & Tanda Tangan')),
       el(
         'p',
         { class: 'workspace-desc' },
-        'Klik langsung pada halaman 1 untuk menempelkan teks atau gambar tanda tangan — tidak perlu lagi menghitung koordinat manual.'
+        t('Klik langsung pada halaman 1 untuk menempelkan teks atau gambar tanda tangan — tidak perlu lagi menghitung koordinat manual.')
       ),
-      el('div', { class: 'privacy-badge' }, '🔒 Diproses 100% lokal di browser Anda.')
+      el('div', { class: 'privacy-badge' }, t('🔒 Diproses 100% lokal di browser Anda.'))
     ]),
     dropzone,
     el('div', { class: 'options-form' }, [
-      el('label', { class: 'field' }, [el('span', { class: 'field-label' }, 'Jenis tanda tangan'), modeSelect])
+      el('label', { class: 'field' }, [el('span', { class: 'field-label' }, t('Jenis tanda tangan')), modeSelect])
     ]),
     textSection,
     imageSection,
     statusLine,
     canvasWrap,
-    el('h3', {}, 'Item Ditempatkan'),
+    el('h3', {}, t('Item Ditempatkan')),
     itemList,
     el('div', { class: 'actions' }, [applyBtn]),
     resultArea

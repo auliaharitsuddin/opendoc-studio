@@ -1,6 +1,7 @@
 import { el } from '../components/dom.js';
 import { renderPdfPageToCanvas } from '../components/pdf-canvas.js';
 import { downloadResult, suggestOutputName } from '../../core/pipeline.js';
+import { t } from '../i18n.js';
 
 const DEFAULT_SIZE = {
   text: [160, 20],
@@ -18,7 +19,7 @@ export function renderFormsDesigner() {
   const fileInput = el('input', { type: 'file', accept: '.pdf', class: 'file-input' });
   const dropzone = el('div', { class: 'dropzone' }, [
     el('div', { class: 'dropzone-icon' }, '📝'),
-    el('div', {}, 'Pilih PDF untuk ditambahkan field formulir'),
+    el('div', {}, t('Pilih PDF untuk ditambahkan field formulir')),
     fileInput
   ]);
   dropzone.addEventListener('click', (e) => {
@@ -27,21 +28,21 @@ export function renderFormsDesigner() {
   fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
 
   const typeSelect = el('select', { class: 'field-input' }, [
-    el('option', { value: 'text' }, 'Kotak Teks'),
-    el('option', { value: 'checkbox' }, 'Checkbox'),
-    el('option', { value: 'radio' }, 'Radio Button'),
-    el('option', { value: 'dropdown' }, 'Dropdown')
+    el('option', { value: 'text' }, t('Kotak Teks')),
+    el('option', { value: 'checkbox' }, t('Checkbox')),
+    el('option', { value: 'radio' }, t('Radio Button')),
+    el('option', { value: 'dropdown' }, t('Dropdown'))
   ]);
   const nameInput = el('input', { type: 'text', class: 'field-input', value: 'field1' });
-  const optionsInput = el('input', { type: 'text', class: 'field-input hidden', placeholder: 'Pilihan (pisahkan koma), mis: A,B,C' });
+  const optionsInput = el('input', { type: 'text', class: 'field-input hidden', placeholder: t('Pilihan (pisahkan koma), mis: A,B,C') });
   typeSelect.addEventListener('change', () => {
     optionsInput.classList.toggle('hidden', !['radio', 'dropdown'].includes(typeSelect.value));
   });
 
   const canvasWrap = el('div', { class: 'measure-canvas-wrap' });
-  const statusLine = el('div', { class: 'progress-label' }, 'Muat PDF, atur jenis & nama field, lalu klik posisi pada halaman.');
+  const statusLine = el('div', { class: 'progress-label' }, t('Muat PDF, atur jenis & nama field, lalu klik posisi pada halaman.'));
   const fieldList = el('ul', { class: 'file-list' });
-  const applyBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: applyAndDownload }, 'Terapkan & Unduh PDF');
+  const applyBtn = el('button', { class: 'btn btn-primary', disabled: '', onclick: applyAndDownload }, t('Terapkan & Unduh PDF'));
   const resultArea = el('div', { class: 'result-area hidden' });
 
   async function loadFile(f) {
@@ -54,7 +55,7 @@ export function renderFormsDesigner() {
     pageCtx.canvas.addEventListener('click', onCanvasClick);
     fields.length = 0;
     renderFieldList();
-    statusLine.textContent = 'Klik pada halaman untuk menempatkan field.';
+    statusLine.textContent = t('Klik pada halaman untuk menempatkan field.');
   }
 
   function onCanvasClick(e) {
@@ -73,11 +74,11 @@ export function renderFormsDesigner() {
       .filter(Boolean);
 
     if (type === 'radio') {
-      const optionLabel = prompt('Label pilihan radio ini:', options[0] || `Pilihan${fields.length + 1}`);
+      const optionLabel = prompt(t('Label pilihan radio ini:'), options[0] || `${t('Pilihan')}${fields.length + 1}`);
       if (!optionLabel) return;
       fields.push({ type, name, pageIndex: 0, x: pdfX, y: pdfY - h, width: w, height: h, options: [optionLabel] });
     } else if (type === 'dropdown') {
-      fields.push({ type, name, pageIndex: 0, x: pdfX, y: pdfY - h, width: w, height: h, options: options.length ? options : ['Opsi 1', 'Opsi 2'] });
+      fields.push({ type, name, pageIndex: 0, x: pdfX, y: pdfY - h, width: w, height: h, options: options.length ? options : [`${t('Opsi')} 1`, `${t('Opsi')} 2`] });
     } else {
       fields.push({ type, name, pageIndex: 0, x: pdfX, y: pdfY - h, width: w, height: h });
     }
@@ -129,15 +130,15 @@ export function renderFormsDesigner() {
           onclick: async () => {
             downloadBtn.disabled = true;
             await downloadResult(blob, filename);
-            downloadBtn.textContent = '✓ Diunduh & dihapus dari memori';
+            downloadBtn.textContent = t('✓ Diunduh & dihapus dari memori');
           }
         },
-        `Unduh ${filename}`
+        `${t('Unduh')} ${filename}`
       );
-      resultArea.append(el('div', { class: 'alert alert-success' }, '✅ Field formulir berhasil ditambahkan.'), downloadBtn);
+      resultArea.append(el('div', { class: 'alert alert-success' }, t('✅ Field formulir berhasil ditambahkan.')), downloadBtn);
     } catch (err) {
       resultArea.classList.remove('hidden');
-      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `Gagal: ${err.message}`));
+      resultArea.appendChild(el('div', { class: 'alert alert-error' }, `${t('Gagal')}: ${err.message}`));
     } finally {
       applyBtn.disabled = false;
     }
@@ -145,19 +146,19 @@ export function renderFormsDesigner() {
 
   root.append(
     el('div', { class: 'workspace-header' }, [
-      el('h1', {}, 'Perancang Formulir'),
-      el('p', { class: 'workspace-desc' }, 'Field yang dibuat adalah AcroForm asli (bukan overlay) — bisa diisi di Adobe Reader atau PDF viewer manapun. Untuk radio button, klik beberapa kali dengan nama field yang sama untuk membuat beberapa pilihan.'),
-      el('div', { class: 'privacy-badge' }, '🔒 Diproses 100% lokal di browser Anda.')
+      el('h1', {}, t('Perancang Formulir')),
+      el('p', { class: 'workspace-desc' }, t('Field yang dibuat adalah AcroForm asli (bukan overlay) — bisa diisi di Adobe Reader atau PDF viewer manapun. Untuk radio button, klik beberapa kali dengan nama field yang sama untuk membuat beberapa pilihan.')),
+      el('div', { class: 'privacy-badge' }, t('🔒 Diproses 100% lokal di browser Anda.'))
     ]),
     dropzone,
     el('div', { class: 'options-form' }, [
-      el('label', { class: 'field' }, [el('span', { class: 'field-label' }, 'Jenis field'), typeSelect]),
-      el('label', { class: 'field' }, [el('span', { class: 'field-label' }, 'Nama field'), nameInput]),
-      el('label', { class: 'field' }, [el('span', { class: 'field-label' }, 'Pilihan (radio/dropdown)'), optionsInput])
+      el('label', { class: 'field' }, [el('span', { class: 'field-label' }, t('Jenis field')), typeSelect]),
+      el('label', { class: 'field' }, [el('span', { class: 'field-label' }, t('Nama field')), nameInput]),
+      el('label', { class: 'field' }, [el('span', { class: 'field-label' }, t('Pilihan (radio/dropdown)')), optionsInput])
     ]),
     statusLine,
     canvasWrap,
-    el('h3', {}, 'Field yang Ditambahkan'),
+    el('h3', {}, t('Field yang Ditambahkan')),
     fieldList,
     el('div', { class: 'actions' }, [applyBtn]),
     resultArea
